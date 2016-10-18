@@ -460,8 +460,9 @@ module Crystal
     macro parse_operator(name, next_operator, node, operators)
       def parse_{{name.id}}
         location = @token.location
-
         left = parse_{{next_operator.id}}
+        @token.type = :"&&" if @token.value == :and
+        @token.type = :"||" if @token.value == :or # todo: fix token.type business
         while true
           case @token.type
           when :SPACE
@@ -483,8 +484,10 @@ module Crystal
       end
     end
 
-    parse_operator :or, :and, "Or.new left, right", ":\"||\""
-    parse_operator :and, :equality, "And.new left, right", ":\"&&\""
+    # parse_operator :flags_or, :flags_and, "Or.new left, right", ":\"||\", :or"
+    # parse_operator :flags_and, :flags_atomic, "And.new left, right", ":\"&&\", :and"
+    parse_operator :or, :and, "Or.new left, right", ":\"||\", :or"
+    parse_operator :and, :equality, "And.new left, right", ":\"&&\", :and"
     parse_operator :equality, :cmp, "Call.new left, method, [right] of ASTNode, name_column_number: method_column_number", ":\"<\", :\"<=\", :\">\", :\">=\", :\"<=>\""
     parse_operator :cmp, :logical_or, "Call.new left, method, [right] of ASTNode, name_column_number: method_column_number", ":\"==\", :\"!=\", :\"=~\", :\"!~\", :\"===\""
     parse_operator :logical_or, :logical_and, "Call.new left, method, [right] of ASTNode, name_column_number: method_column_number", ":\"|\", :\"^\""
@@ -550,7 +553,7 @@ module Crystal
 
     parse_operator :pow, :atomic_with_method, "Call.new left, method, [right] of ASTNode, name_column_number: method_column_number", ":\"**\""
 
-    AtomicWithMethodCheck = [:IDENT, :"+", :"-", :"*", :"/", :"%", :"|", :"&", :"^", :"**", :"<<", :"<", :"<=", :"==", :"!=", :"=~", :"!~", :">>", :">", :">=", :"<=>", :"===", :"[]", :"[]=", :"[]?", :"["]
+    AtomicWithMethodCheck = [:IDENT, :"+", :"-", :"*", :"/", :"%", :"|", :"&", :"^", :"**", :"<<", :"<", :"<=", :"==", :"!=", :"=~", :"!~", :">>", :">", :">=", :"<=>", :"===", :"[]", :"[]=", :"[]?", :"[", :and,:"&&",:or,:"||"]
 
     def parse_atomic_with_method
       location = @token.location
@@ -824,6 +827,10 @@ module Crystal
 
       IsA.new(atomic, Path.global("Nil"), nil_check: true)
     end
+
+    # def warn(x)
+    #   puts(x)
+    # end
 
     def parse_atomic
       location = @token.location

@@ -172,7 +172,7 @@ module Crystal
                 if peek_next_char == '\n'
                   next
                 else
-                  raise "exepcting '\\n' after '\\r'"
+                  raise "expecting '\\n' after '\\r'"
                 end
               when char == '\n'
                 @line_number += 1
@@ -694,6 +694,10 @@ module Crystal
           if next_char == 'i' && next_char == 'a' && next_char == 's'
             return check_ident_or_keyword(:alias, start)
           end
+        when 'n'
+          if next_char == 'd'
+              return check_ident_or_keyword(:and, start)
+          end
         when 's'
           peek = peek_next_char
           case peek
@@ -865,6 +869,8 @@ module Crystal
         case next_char
         when 'f'
           return check_ident_or_keyword(:of, start)
+        when 'r'
+          return check_ident_or_keyword(:or, start)
         when 'u'
           if next_char == 't'
             return check_ident_or_keyword(:out, start)
